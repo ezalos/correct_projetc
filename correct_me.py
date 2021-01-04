@@ -56,11 +56,11 @@ class SweetAutomation():
 		self.driver.close()
 
 	def subscribe_to_slot(self, slot):
+		slot.click()
 		if self.args.validation:
 			if "y" != input(BLUE + "If you would you like to subscribe input 'y': " + RESET):
 				print(RED + "Slot ignored :(" + RESET)
 				return False
-		slot.click()
 		# Selector: /html/body/div[4]/div[3]/div/div[2]/div[3]/div/div/div[2]/select
 		# Options:  /html/body/div[4]/div[3]/div/div[2]/div[3]/div/div/div[2]/select/option[1]
 		# <select>
@@ -112,7 +112,6 @@ class SweetAutomation():
 	def race_slots(self):
 		xpath_date = lambda day: "/html/body/div[4]/div[3]/div/div[2]/div[1]/div[2]/div/table/thead/tr/td/div/table/thead/tr/th[" + str(day + 2) + "]"
 		xpath_slot = lambda day, slot:      "/html/body/div[4]/div[3]/div/div[2]/div[1]/div[2]/div/table/tbody/tr/td/div/div/div[3]/table/tbody/tr/td[" + str(day + 2) + "]/div/div[2]/a[" + str(slot + 1) + "]/div[1]/div[1]"
-
 		for day in range(7):
 			for d in self.driver.find_elements_by_xpath(xpath_date(day)):
 				date = str(d.get_attribute("data-date")) + " " + RED + d.text[:3] + RESET
