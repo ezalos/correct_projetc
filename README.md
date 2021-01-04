@@ -22,5 +22,5 @@ pyhton3 correct_me.py -h
 ## Suggestion of my preferred options
 
 ```sh
-python3 correct_me.py -s -t 11h00-21h00 -v -r malloc
+python3 correct_me.py -s -t 11h00-21h00 -r malloc
 ```
