@@ -73,13 +73,19 @@ def subscribe_to_slot(driver, slot):
 			actions.click(slot).perform()
 		except Exception as e:
 			print(e)
-			return None
-	pass
+			return False
+	#Button to click
+	#/html/body/div[4]/div[3]/div/div[2]/div[3]/div/div/div[3]/button[2]
+	for validation in driver.find_elements_by_xpath("/html/body/div[4]/div[3]/div/div[2]/div[3]/div/div/div[3]/button[2]"):
+		validation.click()
+	return True
 
 def race_slots(driver):
-	xpath_date = lambda day: "/html/body/div[4]/div[2]/div/div[2]/div/div[2]/div/table/thead/tr/td/div/table/thead/tr/th[" + str(day + 2) + "]"
+	xpath_date = lambda day: "/html/body/div[4]/div[3]/div/div[2]/div[1]/div[2]/div/table/thead/tr/td/div/table/thead/tr/th[" + str(day + 2) + "]"
 	xpath_slot = lambda day, slot:      "/html/body/div[4]/div[3]/div/div[2]/div[1]/div[2]/div/table/tbody/tr/td/div/div/div[3]/table/tbody/tr/td[" + str(day + 2) + "]/div/div[2]/a[" + str(slot) + "]/div[1]/div[1]"
-	xpath_slot_time = lambda day, slot: "/html/body/div[4]/div[2]/div/div[2]/div/div[2]/div/table/tbody/tr/td/div/div/div[3]/table/tbody/tr/td[" + str(day + 2) + "]/div/div[2]/a[" + str(slot + 2) + "]/div[1]/div[1]"
+	xpath_slot_time = lambda day, slot: "/html/body/div[4]/div[3]/div/div[2]/div/div[2]/div/table/tbody/tr/td/div/div/div[3]/table/tbody/tr/td[" + str(day + 2) + "]/div/div[2]/a[" + str(slot + 2) + "]/div[1]/div[1]"
+	# for e in driver.find_elements_by_xpath("/html/body/div[4]/div[3]/div/div[2]/div[1]/div[2]"):
+	# 	driver.execute_script("scroll(0, 250);", e)
 	for day in range(7):
 		for d in driver.find_elements_by_xpath(xpath_date(day)):
 			date = str(d.get_attribute("data-date")) + " " + d.text[:3]
@@ -92,13 +98,18 @@ def race_slots(driver):
 				found += str(slot_time.get_attribute("data-full"))
 				print("\t", found)
 				over = 0
+				actions = ActionChains(driver)
+				actions.move_to_element(slot_time)
+				actions.perform()
 			for slot in driver.find_elements_by_xpath(xpath_slot(day, i)):
 				print(slot)
-				subscribe_to_slot(driver, slot)
+				if subscribe_to_slot(driver, slot):
+					return True
 				over = 0
-			if over:
+			if over and i > 5:
 				print("\t", "None")
 				break
+	return False
 
 def fancy_print(slots_tab):
 	msg = ""
@@ -142,5 +153,9 @@ if __name__ == "__main__":
 		driver = init_session()
 		site_login(driver)
 		# access_calendar(driver, sys.argv[1])
-		my_slots(driver)
-		r = race_slots(driver)
+		# my_slots(driver)
+		driver.get("https://projects.intra.42.fr/projects/42cursus-boot2root/slots?team_id=3418937")
+		while True:
+			if race_slots(driver):
+				break
+			driver.refresh()
