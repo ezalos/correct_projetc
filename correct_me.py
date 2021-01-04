@@ -30,7 +30,12 @@ class SweetAutomation():
 		self.driver = webdriver.Firefox()
 		self.driver.get(url)
 		self.site_login()
-		self.access_calendar(args.PROJECT_LINK)
+		self.links = []
+		if args.link:
+			self.access_calendar(args.link)
+		else:
+			self.fetch_started_projects()
+		print("List of links: ", self.links)
 
 	def site_login(self):
 		self.driver.get(url)
@@ -39,18 +44,47 @@ class SweetAutomation():
 		self.driver.find_elements_by_xpath("//input[@class='btn btn-login' and @value='Sign in']")[0].click()
 		print("User " + BLUE + login["user"] + RESET + " has been logged!")
 
+	def fetch_started_projects(self):
+		# From https://profile.intra.42.fr/
+		# List of subscribed projects
+		# /html/body/div[4]/div[2]/div/div[2]/div/div[2]/div/div[5]/div/div/a[2]
+		links_to_try = []
+		xpath_projects = lambda project: "/html/body/div[4]/div[2]/div/div[2]/div/div[2]/div/div[5]/div/div/a[" + str(project + 1) + "]"
+		for i in range(100):
+			over = 1
+			for project in self.driver.find_elements_by_xpath(xpath_projects(i)):
+				link = str(project.get_attribute("href"))
+				if self.args.regex:
+					reg = re.compile(self.args.regex)
+					match = re.search(reg, link)
+					if match:
+						links_to_try.append(link)
+				else:
+					links_to_try.append(link)
+				over = 0
+			if over:
+				break
+		for link in links_to_try:
+			self.access_calendar(link)
+
 	def access_calendar(self, link):
 		self.driver.get(link)
-		self.driver.find_element_by_link_text('Subscribe to defense').click()
+		try:
+			calendar = self.driver.find_element_by_link_text('Subscribe to defense')
+			self.links.append(str(calendar.get_attribute("href")))
+		except:
+			pass
 
 	def loop(self):
 		correction_took = 0
 		while True:
-			if self.race_slots():
-				correction_took += 1
-				if correction_took >= self.args.multi:
-					break
-			self.driver.refresh()
+			for link in self.links:
+				self.driver.get(link)
+				if self.race_slots():
+					correction_took += 1
+					if correction_took >= self.args.multi:
+						break
+			# self.driver.refresh()
 			if not self.args.silent:
 				print("Refresh!\n")
 		self.driver.close()
@@ -140,7 +174,8 @@ if __name__ == "__main__":
 	parser.add_argument("-m", "--multi", help="Will take more n correction. Default is 1", type=int, default=1)
 	parser.add_argument("-s", "--silent", help="Will reduce verbose to minimum", default=False, action='store_true')
 	parser.add_argument("-v", "--validation", help="Ask for manual validation before subscribing to slot", default=False, action='store_true')
-	parser.add_argument("PROJECT_LINK", help="Link to your project, ex:\thttps://projects.intra.42.fr/42cursus-malloc/ldevelle")
+	parser.add_argument("-l", "--link", help="Link to your project, ex:\thttps://projects.intra.42.fr/42cursus-malloc/ldevelle")
+	parser.add_argument("-r", "--regex", help="Regex for project selection")
 	args = parser.parse_args()
 
 	correc_impec = SweetAutomation(args)
