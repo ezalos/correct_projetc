@@ -171,7 +171,7 @@ if __name__ == "__main__":
 	parser.add_argument("-t", "--time", help="/!\\ ONLY HOURS ARE USED. Allows you to specify an inclusive time range to subscribe to corrections. Example: 15h30-24h00 -> correction can start at 15h30, included, until end of day, included.")
 	# parser.add_argument("-d", "--date", help="Allows you to specify an inclusive date range to subscribe to corrections, default to the current week. Example: 2021-01-28/2021-01-30")
 	# parser.add_argument("-n", "--now", help="Only looks for correction today", default=False, action='store_true')
-	parser.add_argument("-m", "--multi", help="Will take more n correction. Default is 1", type=int, default=1)
+	parser.add_argument("-m", "--multi", help="Will take n corrections. Default is 1", type=int, default=1)
 	parser.add_argument("-s", "--silent", help="Will reduce verbose to minimum", default=False, action='store_true')
 	parser.add_argument("-v", "--validation", help="Ask for manual validation before subscribing to slot", default=False, action='store_true')
 	parser.add_argument("-l", "--link", help="Link to your project, ex:\thttps://projects.intra.42.fr/42cursus-malloc/ldevelle")
