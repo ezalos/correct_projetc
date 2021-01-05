@@ -168,7 +168,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser = argparse.ArgumentParser(description='Here to help you find corrections without losing your precious time!', epilog="Any help to get it better is appreciated!\nIf needed here is my slack: @ldevelle")
 
-	parser.add_argument("-t", "--time", help="/!\\ ONLY HOURS ARE USED. Allows you to specify an inclusive time range to subscribe to corrections. Example: 15h30-24h00 -> correction can start at 15h30, included, until end of day, included.")
+	parser.add_argument("-t", "--time", help="Allows you to specify an inclusive time range to subscribe to corrections. Example: 15h30-24h00 -> correction can start at 15h30, included, until end of day, included.")
 	# parser.add_argument("-d", "--date", help="Allows you to specify an inclusive date range to subscribe to corrections, default to the current week. Example: 2021-01-28/2021-01-30")
 	# parser.add_argument("-n", "--now", help="Only looks for correction today", default=False, action='store_true')
 	parser.add_argument("-m", "--multi", help="Will take n corrections. Default is 1", type=int, default=1)
