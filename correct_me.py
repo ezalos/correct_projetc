@@ -35,7 +35,7 @@ class SweetAutomation():
 			self.access_calendar(args.link)
 		else:
 			self.fetch_started_projects()
-		print("List of links: ", self.links)
+		print(BLUE + "List of links: " + RESET, self.links)
 
 	def site_login(self):
 		self.driver.get(url)
@@ -58,7 +58,10 @@ class SweetAutomation():
 					reg = re.compile(self.args.regex)
 					match = re.search(reg, link)
 					if match:
+						print(self.args.regex + GREEN + " did match     " + YELLOW + link + RESET)
 						links_to_try.append(link)
+					else:
+						print(self.args.regex + RED + " did not match " + YELLOW + link + RESET)
 				else:
 					links_to_try.append(link)
 				over = 0
@@ -77,16 +80,17 @@ class SweetAutomation():
 
 	def loop(self):
 		correction_took = 0
-		while True:
-			for link in self.links:
-				self.driver.get(link)
-				if self.race_slots():
-					correction_took += 1
-					if correction_took >= self.args.multi:
-						break
-			# self.driver.refresh()
-			if not self.args.silent:
-				print("Refresh!\n")
+		if self.links:
+			while True:
+				for link in self.links:
+					self.driver.get(link)
+					if self.race_slots():
+						correction_took += 1
+						if correction_took >= self.args.multi:
+							break
+				# self.driver.refresh()
+				if not self.args.silent:
+					print("Refresh!\n")
 		self.driver.close()
 
 	def subscribe_to_slot(self, slot):
