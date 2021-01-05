@@ -45,9 +45,6 @@ class SweetAutomation():
 		print("User " + BLUE + login["user"] + RESET + " has been logged!")
 
 	def fetch_started_projects(self):
-		# From https://profile.intra.42.fr/
-		# List of subscribed projects
-		# /html/body/div[4]/div[2]/div/div[2]/div/div[2]/div/div[5]/div/div/a[2]
 		links_to_try = []
 		xpath_projects = lambda project: "/html/body/div[4]/div[2]/div/div[2]/div/div[2]/div/div[5]/div/div/a[" + str(project + 1) + "]"
 		for i in range(100):
@@ -98,6 +95,8 @@ class SweetAutomation():
 		if self.args.validation:
 			if "y" != input(BLUE + "If you would you like to subscribe input 'y': " + RESET):
 				print(RED + "Slot ignored :(" + RESET)
+				for cancel in self.driver.find_elements_by_xpath("/html/body/div[4]/div[3]/div/div[2]/div[3]/div/div/div[3]/button[1]"):
+					cancel.click()
 				return False
 		# Selector: /html/body/div[4]/div[3]/div/div[2]/div[3]/div/div/div[2]/select
 		# Options:  /html/body/div[4]/div[3]/div/div[2]/div[3]/div/div/div[2]/select/option[1]
