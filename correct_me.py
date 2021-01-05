@@ -58,10 +58,10 @@ class SweetAutomation():
 					reg = re.compile(self.args.regex)
 					match = re.search(reg, link)
 					if match:
-						print(self.args.regex + GREEN + " did match     " + YELLOW + link + RESET)
+						print(self.args.regex + GREEN + " did match     " + PURPLE + link + RESET)
 						links_to_try.append(link)
 					else:
-						print(self.args.regex + RED + " did not match " + YELLOW + link + RESET)
+						print(self.args.regex + RED + " did not match " + PURPLE + link + RESET)
 				else:
 					links_to_try.append(link)
 				over = 0
