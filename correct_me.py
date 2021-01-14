@@ -112,6 +112,40 @@ class SweetAutomation():
 		print(GREEN + "Slot succesfully took!" + RESET)
 		return True
 
+	def date_fit(self, date):
+		if not self.args.silent:
+			print(YELLOW + "Looking at date: " + RESET + date)
+		is_match = True
+		if self.args.date:
+			#self:   '2021-01-14/2021-01-15'
+			reg_s = re.compile(r"(\d+)-(\d+)-(\d+)/(\d+)-(\d+)-(\d+)")
+			#correc: '2021-01-14 Thu'
+			reg_c = re.compile(r"(\d+)-(\d+)-(\d+)")
+			match_s = re.search(reg_s, self.args.date)
+			match_c = re.search(reg_c, date)
+			if match_s and match_c:
+				s_date = [None, None]
+				s_date[0] = [int(match_s.group(1)), int(match_s.group(2)), int(match_s.group(3))]
+				s_date[1] = [int(match_s.group(4)), int(match_s.group(5)), int(match_s.group(6))]
+				c_date = [int(match_c.group(1)), int(match_c.group(2)), int(match_c.group(3))]
+				is_match = False
+				for i in range(3):
+					if s_date[0][i] <= c_date[i] <= s_date[1][i]:
+						if i == 2:
+							is_match = True
+						continue
+					else:
+						break
+				if not self.args.silent:
+					if is_match == False:
+						print("\t" + RED + "Date ignored: " + RESET + self.args.date)
+					else:
+						print("\t" + GREEN + "Date valid: " + RESET + self.args.date)
+			else:
+				print("Regex error: ", match_s, match_c)
+				print(YELLOW + "Will default to True." + RESET)
+		return is_match
+
 	def time_fit(self, slot, date):
 		time_start = str(slot.get_attribute("data-start"))
 		time_full = str(slot.get_attribute("data-full"))
@@ -119,9 +153,9 @@ class SweetAutomation():
 			print("\t" + YELLOW + "Date: " + RESET + date)
 		print("\t" + BLUE + "SLOT FOUND !" + RESET + " Time: " + PURPLE + time_full + RESET)
 		if self.args.time:
-			#s: '15h30-24h00'
+			#self:   '15h30-24h00'
 			reg_s = re.compile(r"(\d+)h(\d+)-(\d+)h(\d+)")
-			#c: '5:15 PM - 6:30 PM'
+			#correc: '5:15 PM - 6:30 PM'
 			reg_c = re.compile(r"(\d+):(\d+) ([AP])M - (\d+):(\d+) ([AP])M")
 			match_s = re.search(reg_s, self.args.time)
 			match_c = re.search(reg_c, time_full)
@@ -152,19 +186,18 @@ class SweetAutomation():
 		for day in range(7):
 			for d in self.driver.find_elements_by_xpath(xpath_date(day)):
 				date = str(d.get_attribute("data-date")) + " " + RED + d.text[:3] + RESET
-				if not self.args.silent:
-					print(YELLOW + "Looking at date: " + RESET + date)
-			for i in range(50):
-				over = 1
-				for slot in self.driver.find_elements_by_xpath(xpath_slot(day, i)):
-					if self.time_fit(slot, date):
-						if self.subscribe_to_slot(slot):
-							return True
-					over = 0
-				if over:
-					if not self.args.silent:
-						print("\t", "None")
-					break
+				if self.date_fit(date):
+					for i in range(50):
+						over = 1
+						for slot in self.driver.find_elements_by_xpath(xpath_slot(day, i)):
+							if self.time_fit(slot, date):
+								if self.subscribe_to_slot(slot):
+									return True
+							over = 0
+						if over:
+							if not self.args.silent:
+								print("\t", "None")
+							break
 		return False
 
 if __name__ == "__main__":
@@ -172,7 +205,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Here to help you find corrections without losing your precious time!', epilog="Any help to get it better is appreciated!\nIf needed here is my slack: @ldevelle")
 
 	parser.add_argument("-t", "--time", help="Allows you to specify an inclusive time range to subscribe to corrections. Example: 15h30-24h00 -> correction can start at 15h30, included, until end of day, included.")
-	# parser.add_argument("-d", "--date", help="Allows you to specify an inclusive date range to subscribe to corrections, default to the current week. Example: 2021-01-28/2021-01-30")
+	parser.add_argument("-d", "--date", help="Allows you to specify an inclusive date range in the current week to subscribe to corrections, default to the current week. Example: 2021-01-28/2021-01-30")
 	# parser.add_argument("-n", "--now", help="Only looks for correction today", default=False, action='store_true')
 	parser.add_argument("-m", "--multi", help="Will take n corrections. Default is 1", type=int, default=1)
 	parser.add_argument("-s", "--silent", help="Will reduce verbose to minimum", default=False, action='store_true')
