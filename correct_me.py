@@ -27,10 +27,12 @@ url_log = "https://stud42.fr/users/auth/marvin"
 class SweetAutomation():
 	def __init__(self, args):
 		self.args = args
-		self.driver = webdriver.Firefox()
+		self.driver = webdriver.Firefox(".")
 		self.driver.get(url)
 		self.site_login()
 		self.links = []
+		if args.physical_slots:
+			self.subscribe_to_slots_to_go_to_school()
 		if args.link:
 			self.access_calendar(args.link)
 		else:
@@ -43,6 +45,108 @@ class SweetAutomation():
 		self.driver.find_element_by_id ('user_password').send_keys(login["password"])
 		self.driver.find_elements_by_xpath("//input[@class='btn btn-login' and @value='Sign in']")[0].click()
 		print("User " + BLUE + login["user"] + RESET + " has been logged!")
+
+	def subscribe_to_slots_to_go_to_school(self):
+		from time import sleep
+		url = "https://reservation.42network.org/signin"
+		print("First url: " + url)
+		self.driver.get(url)
+		url = "https://reservation.42network.org/static/#/"
+		print("Secon url: " + url)
+		self.driver.get(url)
+		# /html/body/div/div[2]/section/div[2]/div[2]/div/table/tbody/tr/td/div/div/div[3]/table/tbody/tr/td[3]/div/div[2]/a[4]/div/div[1]
+		# 03/23 12h -> E1
+		# /html/body/div/div[2]/section/div[2]/div[2]/div/table/tbody/tr/td/div/div/div[3]/table/tbody/tr/td[3]/div/div[2]/a[15]/div/div[1]
+		# 	E2
+		# /html/body/div/div[2]/section/div[2]/div[2]/div/table/tbody/tr/td/div/div/div[3]/table/tbody/tr/td[3]/div/div[2]/a[16]/div/div[1]
+		# 	TDM
+		# /html/body/div/div[2]/section/div[2]/div[2]/div/table/tbody/tr/td/div/div/div[3]/table/tbody/tr/td[3]/div/div[2]/a[17]/div/div[1]
+		# E1 next hour
+		# /html/body/div/div[2]/section/div[2]/div[2]/div/table/tbody/tr/td/div/div/div[3]/table/tbody/tr/td[3]/div/div[2]/a[18]/div/div[1]
+		#
+		# E1 next day:
+		# /html/body/div/div[2]/section/div[2]/div[2]/div/table/tbody/tr/td/div/div/div[3]/table/tbody/tr/td[4]/div/div[2]/a[16]/div/div[1]
+		xpath_slot = lambda day, hour, cluster: "/html/body/div/div[2]/section/div[2]/div[2]/div/table/tbody/tr/td/div/div/div[3]/table/tbody/tr/td[" + str(day + 1) + "]/div/div[2]/a["+ str((hour * 3) + cluster) + "]/div/div[1]"
+		xpath_nb_slots = "/html/body/div/div[2]/div/div[2]/div/header/div/div/span[2]/span[2]"
+		xpath_cancel = "/html/body/div/div[2]/div/div[2]/div/footer/button"
+		xpath_subscribe = "/html/body/div/div[2]/div/div[2]/div/footer/div/button/span"
+		xpath_subscribe_button = "/html/body/div/div[2]/div/div[2]/div/footer/div/button/span"
+		xpath_already_a_slot = "/html/body/div/div[2]/div/div[2]/div/section/div/div[2]/div/footer/button"
+		xpath_quit_modal = "/html/body/div/div[2]/div/div[2]/button"
+
+		# 0 is monday
+		days = [2]
+		hours = [i for i in range(12, 16)]
+		clusters = [i for i in range(3)]
+		while len(hours):
+			for d in range(0, 7):
+				if d not in days:
+					continue
+				for h in range(8, 18):
+					if h not in hours:
+						continue
+					for c in range(0, 3):
+						if c not in clusters:
+							continue
+						print(f"For Day {d} at {h}h00 in cluster {c}:")
+						# self.driver.implicitly_wait(2)
+						for slot in self.driver.find_elements_by_xpath(xpath_slot(d + 1, h - 8 + 1, c)):
+							print("Opened")
+							for _ in range(10):
+								try:
+									slot.click()
+									break
+								except:
+									print("Waiting...")
+									sleep(1)
+							exit_modal = True
+							# for _ in range(10):
+							# 	try:
+							#		slot.click()
+							#	except:
+							#		print("Waiting...")
+							# 		sleep(1)
+							for nb in self.driver.find_elements_by_xpath(xpath_nb_slots):
+								vals = []
+								while len(vals) < 2:
+									vals = nb.text.split('/')
+									print("Wait nb places")
+									sleep(1)
+								print("\t{}{}/{}{}".format(YELLOW, vals[0], vals[1], RESET))
+								if int(vals[0]) < int(vals[1]):
+									# print("Starting sleep")
+									# sleep(10)
+									for subscribe in self.driver.find_elements_by_xpath(xpath_subscribe):
+										print(subscribe.text)
+										if subscribe.text != "unsubscribe":
+											for subscribe_button in self.driver.find_elements_by_xpath(xpath_subscribe_button):
+												subscribe_button.click()
+											try:
+												self.driver.find_elements_by_xpath(xpath_already_a_slot)[0].click()
+												print("Already another cluster registered at same day and hour")
+											except:
+												print("Has been subscribed !!!!!!!")
+												exit_modal = False
+											hours.remove(h)
+										else:
+											for cancel in self.driver.find_elements_by_xpath(xpath_cancel):
+												cancel.click()
+								# except:
+								# 	sleep(1000)
+							if exit_modal:
+								for chaos in range(10):
+									print("Chaos: ", chaos)
+									try:
+										self.driver.find_elements_by_xpath(xpath_quit_modal)[0].click()
+										break
+									except:
+										print("Error when quitting non available slot")
+										sleep(1)
+
+
+
+
+
 
 	def fetch_started_projects(self):
 		links_to_try = []
@@ -211,6 +315,7 @@ if __name__ == "__main__":
 	parser.add_argument("-s", "--silent", help="Will reduce verbose to minimum", default=False, action='store_true')
 	parser.add_argument("-v", "--validation", help="Ask for manual validation before subscribing to slot", default=False, action='store_true')
 	parser.add_argument("-l", "--link", help="Link to your project, ex:\thttps://projects.intra.42.fr/42cursus-malloc/ldevelle")
+	parser.add_argument("-p", "--physical_slots", help="Reseve slots to physically go to school")
 	parser.add_argument("-r", "--regex", help="Regex for project selection")
 	args = parser.parse_args()
 
