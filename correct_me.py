@@ -285,6 +285,8 @@ class SweetAutomation():
 		return True
 
 	def race_slots(self):
+		import time
+		time.sleep(2)
 		xpath_date = lambda day: "/html/body/div[4]/div[3]/div/div[2]/div[1]/div[2]/div/table/thead/tr/td/div/table/thead/tr/th[" + str(day + 2) + "]"
 		xpath_slot = lambda day, slot:      "/html/body/div[4]/div[3]/div/div[2]/div[1]/div[2]/div/table/tbody/tr/td/div/div/div[3]/table/tbody/tr/td[" + str(day + 2) + "]/div/div[2]/a[" + str(slot + 1) + "]/div[1]/div[1]"
 		for day in range(7):
