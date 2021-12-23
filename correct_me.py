@@ -27,7 +27,10 @@ url_log = "https://stud42.fr/users/auth/marvin"
 class SweetAutomation():
 	def __init__(self, args):
 		self.args = args
+		# options = webdriver.FirefoxOptions()
+		# options.log_level = 3
 		self.driver = webdriver.Firefox(".")
+
 		self.driver.get(url)
 		self.site_login()
 		self.links = []

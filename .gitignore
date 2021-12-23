@@ -1,4 +1,7 @@
-*.log
-config.py
 __pycache__
-geckodriver.log
+
+.envrc
+venv
+
+geckodriver*
+geckodriver
