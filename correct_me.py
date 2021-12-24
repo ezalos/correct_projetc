@@ -1,10 +1,12 @@
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.action_chains import ActionChains
+# from selenium.webdriver.common.keys import Keys
+# from selenium.webdriver.support.ui import WebDriverWait
+# from selenium.webdriver.support import expected_conditions as EC
+# from selenium.common.exceptions import TimeoutException
+# from selenium.webdriver.common.action_chains import ActionChains
 
 import argparse
 
@@ -27,9 +29,11 @@ url_log = "https://stud42.fr/users/auth/marvin"
 class SweetAutomation():
 	def __init__(self, args):
 		self.args = args
-		# options = webdriver.FirefoxOptions()
-		# options.log_level = 3
-		self.driver = webdriver.Firefox(".")
+		options = Options()
+		options.log.level = "fatal"    # Debug - TRACE
+		options.headless = True
+		service = Service("./geckodriver")
+		self.driver = webdriver.Firefox(service=service, options=options)
 
 		self.driver.get(url)
 		self.site_login()
@@ -44,9 +48,9 @@ class SweetAutomation():
 
 	def site_login(self):
 		self.driver.get(url)
-		self.driver.find_element_by_id('user_login').send_keys(login["user"])
-		self.driver.find_element_by_id ('user_password').send_keys(login["password"])
-		self.driver.find_elements_by_xpath("//input[@class='btn btn-login' and @value='Sign in']")[0].click()
+		self.driver.find_element(By.ID, 'user_login').send_keys(login["user"])
+		self.driver.find_element(By.ID, 'user_password').send_keys(login["password"])
+		self.driver.find_elements(By.XPATH, "//input[@class='btn btn-login' and @value='Sign in']")[0].click()
 		print("User " + BLUE + login["user"] + RESET + " has been logged!")
 
 	def subscribe_to_slots_to_go_to_school(self):
@@ -93,7 +97,7 @@ class SweetAutomation():
 							continue
 						print(f"For Day {d} at {h}h00 in cluster {c}:")
 						# self.driver.implicitly_wait(2)
-						for slot in self.driver.find_elements_by_xpath(xpath_slot(d + 1, h - 8 + 1, c)):
+						for slot in self.driver.find_elements(By.XPATH, xpath_slot(d + 1, h - 8 + 1, c)):
 							print("Opened")
 							for _ in range(10):
 								try:
@@ -109,7 +113,7 @@ class SweetAutomation():
 							#	except:
 							#		print("Waiting...")
 							# 		sleep(1)
-							for nb in self.driver.find_elements_by_xpath(xpath_nb_slots):
+							for nb in self.driver.find_elements(By.XPATH, xpath_nb_slots):
 								vals = []
 								while len(vals) < 2:
 									vals = nb.text.split('/')
@@ -119,20 +123,20 @@ class SweetAutomation():
 								if int(vals[0]) < int(vals[1]):
 									# print("Starting sleep")
 									# sleep(10)
-									for subscribe in self.driver.find_elements_by_xpath(xpath_subscribe):
+									for subscribe in self.driver.find_elements(By.XPATH, xpath_subscribe):
 										print(subscribe.text)
 										if subscribe.text != "unsubscribe":
-											for subscribe_button in self.driver.find_elements_by_xpath(xpath_subscribe_button):
+											for subscribe_button in self.driver.find_elements(By.XPATH, xpath_subscribe_button):
 												subscribe_button.click()
 											try:
-												self.driver.find_elements_by_xpath(xpath_already_a_slot)[0].click()
+												self.driver.find_elements(By.XPATH, xpath_already_a_slot)[0].click()
 												print("Already another cluster registered at same day and hour")
 											except:
 												print("Has been subscribed !!!!!!!")
 												exit_modal = False
 											hours.remove(h)
 										else:
-											for cancel in self.driver.find_elements_by_xpath(xpath_cancel):
+											for cancel in self.driver.find_elements(By.XPATH, xpath_cancel):
 												cancel.click()
 								# except:
 								# 	sleep(1000)
@@ -140,7 +144,7 @@ class SweetAutomation():
 								for chaos in range(10):
 									print("Chaos: ", chaos)
 									try:
-										self.driver.find_elements_by_xpath(xpath_quit_modal)[0].click()
+										self.driver.find_elements(By.XPATH, xpath_quit_modal)[0].click()
 										break
 									except:
 										print("Error when quitting non available slot")
@@ -156,7 +160,7 @@ class SweetAutomation():
 		xpath_projects = lambda project: "/html/body/div[4]/div[2]/div/div[2]/div/div[2]/div/div[5]/div/div/a[" + str(project + 1) + "]"
 		for i in range(100):
 			over = 1
-			for project in self.driver.find_elements_by_xpath(xpath_projects(i)):
+			for project in self.driver.find_elements(By.XPATH, xpath_projects(i)):
 				link = str(project.get_attribute("href"))
 				if self.args.regex:
 					reg = re.compile(self.args.regex)
@@ -177,7 +181,7 @@ class SweetAutomation():
 	def access_calendar(self, link):
 		self.driver.get(link)
 		try:
-			calendar = self.driver.find_element_by_link_text('Subscribe to defense')
+			calendar = self.driver.find_element(By.LINK_TEXT, 'Subscribe to defense')
 			self.links.append(str(calendar.get_attribute("href")))
 		except:
 			pass
@@ -202,7 +206,7 @@ class SweetAutomation():
 		if self.args.validation:
 			if "y" != input(BLUE + "If you would you like to subscribe input 'y': " + RESET):
 				print(RED + "Slot ignored :(" + RESET)
-				for cancel in self.driver.find_elements_by_xpath("/html/body/div[4]/div[3]/div/div[2]/div[3]/div/div/div[3]/button[1]"):
+				for cancel in self.driver.find_elements(By.XPATH, "/html/body/div[4]/div[3]/div/div[2]/div[3]/div/div/div[3]/button[1]"):
 					cancel.click()
 				return False
 		# Selector: /html/body/div[4]/div[3]/div/div[2]/div[3]/div/div/div[2]/select
@@ -214,7 +218,7 @@ class SweetAutomation():
 		# 	<option value="3"> From 7:45 AM to 8:15 AM </option>
 		# </select>
 		xpath_validation = "/html/body/div[4]/div[3]/div/div[2]/div[3]/div/div/div[3]/button[2]"
-		for validation in self.driver.find_elements_by_xpath(xpath_validation):
+		for validation in self.driver.find_elements(By.XPATH, xpath_validation):
 			validation.click()
 		print(GREEN + "Slot succesfully took!" + RESET)
 		return True
@@ -293,12 +297,12 @@ class SweetAutomation():
 		xpath_date = lambda day: "/html/body/div[4]/div[3]/div/div[2]/div[1]/div[2]/div/table/thead/tr/td/div/table/thead/tr/th[" + str(day + 2) + "]"
 		xpath_slot = lambda day, slot:      "/html/body/div[4]/div[3]/div/div[2]/div[1]/div[2]/div/table/tbody/tr/td/div/div/div[3]/table/tbody/tr/td[" + str(day + 2) + "]/div/div[2]/a[" + str(slot + 1) + "]/div[1]/div[1]"
 		for day in range(7):
-			for d in self.driver.find_elements_by_xpath(xpath_date(day)):
+			for d in self.driver.find_elements(By.XPATH, xpath_date(day)):
 				date = str(d.get_attribute("data-date")) + " " + RED + d.text[:3] + RESET
 				if self.date_fit(date):
 					for i in range(50):
 						over = 1
-						for slot in self.driver.find_elements_by_xpath(xpath_slot(day, i)):
+						for slot in self.driver.find_elements(By.XPATH, xpath_slot(day, i)):
 							if self.time_fit(slot, date):
 								if self.subscribe_to_slot(slot):
 									return True
