@@ -7,9 +7,8 @@ from selenium.webdriver.common.by import By
 # from selenium.webdriver.support import expected_conditions as EC
 # from selenium.common.exceptions import TimeoutException
 # from selenium.webdriver.common.action_chains import ActionChains
-
 import argparse
-
+import time
 import re
 
 from config import login
@@ -292,7 +291,6 @@ class SweetAutomation():
 		return True
 
 	def race_slots(self):
-		import time
 		time.sleep(2)
 		xpath_date = lambda day: "/html/body/div[4]/div[3]/div/div[2]/div[1]/div[2]/div/table/thead/tr/td/div/table/thead/tr/th[" + str(day + 2) + "]"
 		xpath_slot = lambda day, slot:      "/html/body/div[4]/div[3]/div/div[2]/div[1]/div[2]/div/table/tbody/tr/td/div/div/div[3]/table/tbody/tr/td[" + str(day + 2) + "]/div/div[2]/a[" + str(slot + 1) + "]/div[1]/div[1]"
@@ -319,7 +317,6 @@ if __name__ == "__main__":
 
 	parser.add_argument("-t", "--time", help="Allows you to specify an inclusive time range to subscribe to corrections. Example: 15h30-24h00 -> correction can start at 15h30, included, until end of day, included.")
 	parser.add_argument("-d", "--date", help="Allows you to specify an inclusive date range in the current week to subscribe to corrections, default to the current week. Example: 2021-01-28/2021-01-30")
-	# parser.add_argument("-n", "--now", help="Only looks for correction today", default=False, action='store_true')
 	parser.add_argument("-m", "--multi", help="Will take n corrections. Default is 1", type=int, default=1)
 	parser.add_argument("-s", "--silent", help="Will reduce verbose to minimum", default=False, action='store_true')
 	parser.add_argument("-v", "--validation", help="Ask for manual validation before subscribing to slot", default=False, action='store_true')
