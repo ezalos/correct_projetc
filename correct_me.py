@@ -30,7 +30,7 @@ class SweetAutomation():
 	def __init__(self, args):
 		self.args = args
 		options = Options()
-		options.log.level = "fatal"    # Debug - TRACE
+		# options.log.level = "fatal"    # Debug - TRACE
 		options.headless = True
 		service = Service("./geckodriver")
 		self.driver = webdriver.Firefox(service=service, options=options)
